@@ -3,13 +3,25 @@ Este é o segundo projeto desenvolvido como parte do programa de estágio AWS De
 
 ![Diagrama da Infraestrutura](https://raw.githubusercontent.com/PedroAngeloVargas/Wordpress/main/diagrama.jpg)
 
+---
+
 ## 🔎 Sobre o Projeto
 O objetivo principal deste projeto é a criação de uma infraestrutura de nuvem na AWS para hospedar uma página Wordpress em container. A infraestrutura foi configurada com uma infraestrutura de rede segura e com multiplas máquinas em uma subnet segura com autoscalling, Load Balancer e health-ckeck configurado.
 
 Além disso, foi configurado uma bastion host para acesso SSH seguro as instâncias com soluções de monitoramento para o RDS, é também um checkout para indisponibilidade do ALB com status code 5XX mais notificação.
 
+---
+
 ## ⚡️ Sumário
 
+**Índice**
+* [Sobre o Projeto](#sobre-o-projeto)
+* [Tecnologias Utilizadas](#tecnologias-e-servicos-utilizados)
+* [Funcionalidades Principais](#funcionalidades-principais)
+* [Provisionamento da Infraestrutura](#provisionamento-da-infraestrutura)
+* [Monitoramento](#monitoramento)
+
+---
 
 ## 🚀 Tecnologias e Serviços Utilizados
 O projeto foi construído utilizando os seguintes serviços e tecnologias:
@@ -40,6 +52,8 @@ do RDS e da EFS.
 
 - User_data: Automação das configurações da Bastion Host e instâncias Wordpress
 
+---
+
 ### Outros:
 
 - Docker: Container Runtime necessário para executar a aplicação.
@@ -52,6 +66,8 @@ do RDS e da EFS.
 
 - Dbeaver: Client de Banco de dados universal para consutar os registros e tabelas do Mysql.
 
+---
+
 ## 🎯 Funcionalidades Principais
 
 - Hospedagem de Página Wordpress: Através do acesso do load balancer as instâncias na subnet privada, a página
@@ -60,6 +76,8 @@ do RDS e da EFS.
 - Monitoramento Ativo: Monitoramento do Rds e load balancer graças ao containers de monitoramento e ao Cloudwatch respectivamente.
 
 - Notificações em Tempo Real: Alertas são enviados para um email.
+
+---
 
 ## ☁️ Provisionamento da Infraestrutura 
 
@@ -174,6 +192,8 @@ Opcional: Para acessar o painel de monitoramento, faça o seguinte passo a passo
 
     . 2. 
     ```
+
+---
 
 ### Pelo painel:
 
@@ -426,7 +446,7 @@ Resumo
     . Nesta caixa de texto você irá colar um script desse repositório. Que se encontra em /painel/userdatawordpress.sh
 
     . Não se esqueça, de definir as variáveis de ambiente do Banco de Dados corretament no arquivo:
-        DB_HOST=":3306"
+        DB_HOST=""
         DB_PASSWORD=""
         DB_USER=""
     ```
@@ -440,6 +460,433 @@ Resumo
 1. Em EC2, selecione Modelos de Execução
 
 2. Clique em Criar Modelo de Execução
+
+3. Dê um Nome e Descrição ao Modelo
+
+    ```
+    . Nome do modelo de execução: Dê um nome claro e descritivo. 
+
+    . Descrição: Template da VM Wordpress.
+
+    . Orientação do Auto Scaling: Marque a caixa de seleção Fornecer orientação para me ajudar a configurar um modelo para uso com o Amazon EC2 Auto Scaling. Isso ajuda a destacar os campos mais importantes.
+    ````
+    
+4. Selecione a AMI (Imagem de Máquina)
+
+    ```
+    . Esta é a imagem do sistema operacional que suas instâncias usarão.
+
+    . Na seção "Amazon Machine Image (AMI)", procure por Amazon Linux e selecione.
+
+    . Certifique-se de que a AMI selecionada tenha a arquitetura correta (ex: 64 bits x86).
+    ```
+
+5. Escolha o Tipo de Instância
+
+Aqui você define o poder de processamento e a memória da sua máquina.
+
+    ````
+    . Na seção "Tipo de instância", selecione um tipo na lista, uma boa escolha é a t2.micro ou t3.micro.
+    ```
+
+6. Associe um Par de Chaves (Key Pair)
+
+    ```
+    . Na seção "Par de chaves (login)", selecione um par de chaves .pem ou .ppk que você já tenha criado e baixado.
+    ```
+
+7. Configure a Rede (Security Group)
+
+    ```
+    . Em "Configurações de rede", na seção "Grupos de segurança", selecione SG-Wordpress.
+
+    . Deixe o campo "Sub-rede" em branco ("Não incluir no modelo"). Isso dá mais flexibilidade para o Auto Scaling Group.
+    ```
+
+8. Configure o Armazenamento (Volumes)
+    
+    ```
+    . A seção "Configurar armazenamento" já virá preenchida com o volume raiz (o disco principal) baseado na AMI que você escolheu, é o suficiente para a aplicação.
+    ```
+
+9. Adicione o Script de User Data
+
+    ```
+    . Expanda a seção "Detalhes avançados" no final da página.
+
+    . Role até o final da seção expandida e encontre o campo "Dados do usuário".
+
+    . Insira o arquivo /painel/userdatawordpress.sh, não se esqueça de colocar as variaveis de ambiente:
+        EFS_ID=""
+        DB_HOST=""
+        DB_NAME=""
+        DB_PASSWORD=""
+        DB_USER=""
+    ```
+
+10. Criar Modelo de Execução
+````
+---
+
+*--> Target Group (Health Check)*
+
+1. No painel da AWS, vá para o serviço EC2.
+
+2. No menu à esquerda, em "Balanceamento de Carga", clique em Grupos de destino (Target Groups).
+
+3.  Clique no botão "Criar grupo de destino".
+
+4.  Escolha um tipo de destino: Selecione "Instâncias". 
+
+5. Nome do grupo de destino: Digite health-check.
+
+6. Protocolo e Porta: Deixe como HTTP e a porta como 80 (correspondente a protocol e port).
+
+7. PC: Selecione a VPC correta do projeto na lista.
+
+8. Configurações da Verificação de Saúde (Health Check)
+
+    ```
+    . Protocolo da verificação de saúde: Mantenha como HTTP.
+
+    . Caminho da verificação de saúde: Use / (correspondente a path).
+
+    . Clique em "Configurações avançadas da verificação de saúde" para expandir e ver todas as opções.
+
+        Porta: Deixe como "Porta de tráfego", que usará a porta 80 definida acima.
+
+        Limite íntegro: Digite 3. 
+
+        Limite não íntegro: Digite 3. 
+
+        Intervalo: Digite 30 segundos.
+
+        Códigos de sucesso: Clique em "Editar" e digite 200-322.
+    ```
+
+9. Clique em "Avançar" no canto inferior direito
+
+10. Clique no botão "Criar grupo de destino" na parte inferior da página de resumo.
+
+---
+
+*--> Elastic Load Balancer*
+
+1. No painel da AWS, vá para o serviço EC2.
+
+2. No menu à esquerda, em "Balanceamento de Carga", clique em Load Balancers.
+
+3. Clique no botão "Criar Load Balancer".
+
+4. Escolher o Tipo de Load Balancer
+
+    ```
+    . Localize a caixa "Application Load Balancer" e clique em "Criar" dentro dela.
+    ```
+
+5. Configuração Básica
+
+    ```
+    . Nome do Load Balancer: Digite meualb.
+
+    . Esquema: Selecione "Voltado para a Internet". 
+
+    . Tipo de endereço IP: Deixe como "IPv4".
+    ```
+
+6. Mapeamento de Rede
+
+    ```
+    . VPC: Selecione a VPC correta do projeto onde suas sub-redes foram criadas.
+
+    . Mapeamentos: Marque a caixa de seleção para as duas sub-redes públicas, uma para cada Zona de Disponibilidade.
+    ```
+
+7. Grupos de Segurança e Ouvintes
+
+    ```
+    . Grupos de segurança: Remova o security group "padrão", em seguida, selecione o SG-ALB na lista.
+
+    . Ouvintes e roteamento: 
+
+        Deixe o protocolo como HTTP e a porta como 80.
+
+        Na "Ação padrão", clique em "Criar grupo de destino", selecione o health-ckeck.
+    ```
+
+8. Role até o final da página de resumo e desmarque a opção "Proteção contra exclusão".
+
+9. Clique em "Criar Load Balancer".
+
+---
+
+*--> Auto Scalling Group*
+
+1. No painel da AWS, vá para o serviço EC2.
+
+2. No menu à esquerda, role para baixo até a seção "Auto Scaling" e clique em Grupos do Auto Scaling.
+
+3. Clique no botão "Criar um grupo do Auto Scaling".
+
+4. Escolher o Modelo e o Nome
+    
+    ```
+    . Nome do grupo do Auto Scaling: Digite um nome.
+
+    . Modelo de execução: Selecione na lista o Launch Template 
+    ```
+
+5. Configurar a Rede
+
+    ```
+    . VPC: Selecione a VPC correta do projeto.
+
+    . Zonas de Disponibilidade e sub-redes: Selecione as duas sub-redes privadas wordpress na lista.
+    ```
+
+6. Anexar o Load Balancer e Verificações de Saúde
+
+    ```
+    Aqui você conecta o ASG ao Load Balancer e define as regras de saúde.
+
+    . Selecione "Anexar a um grupo de destino de balanceador de carga existente".
+
+    . Escolha na lista o Target Group health-check.
+
+    . Na seção "Verificações de saúde (opcional)", marque a caixa de seleção para "Ativar verificações de integridade do Elastic Load Balancing".
+
+    . No campo "Período de carência da verificação de saúde", digite 720 segundos.
+    ```
+
+7. Configurar Tamanho do Grupo e Política de Escalabilidade
+
+    ```
+    Esta é a tela onde você define tanto o tamanho do grupo quanto a política de escalabilidade.
+
+    . Tamanho do grupo:
+
+        Capacidade desejada: 1
+
+        Capacidade mínima: 1
+
+        Capacidade máxima: 1
+
+    . Política de escalabilidade:
+
+        Selecione "Política de escalabilidade de acompanhamento de destino".
+
+        Tipo de métrica: Escolha "Utilização média da CPU".
+
+        Valor de destino: Digite 70.
+    ```
+8. Clique no botão "Criar grupo do Auto Scaling".
+
+---
+
+*--> SNS*
+
+1. No painel da AWS, vá para o serviço Simple Notification Service (SNS).
+
+2. No menu à esquerda, clique em "Tópicos".
+
+3. Clique em "Criar tópico".
+
+4. Selecione o tipo "Padrão".
+
+5. No campo Nome, de um nome descritivo.
+
+6. Clique em "Criar tópico".
+
+7. Criar a Inscrição por E-mail
+
+    ```
+    . Protocolo: Selecione "E-mail".
+
+    . Endpoint: Digite o endereço de e-mail que deve receber os alertas.
+
+    . Clique em "Criar inscrição".
+    ```
+
+8. Confirmar a Inscrição (Passo Essencial)
+
+    ```
+    . A AWS enviará um e-mail de confirmação para o endereço que você forneceu.
+
+    . Abra seu e-mail e clique no link "Confirm Subscription". Sem isso, a inscrição ficará pendente e você não receberá os alertas.
+    ```
+
+---
+
+*--> CloudWatch*
+
+1. Vá para o serviço CloudWatch.
+
+2. No menu à esquerda, clique em "Alarmes" e depois em "Todos os alarmes".
+
+3. Clique em "Criar alarme".
+
+4. Clique em "Selecionar métrica".
+
+5. Navegue até ApplicationELB > "Por Balanceador de Carga".
+
+6. Encontre seu Load Balancer na lista e selecione a métrica HTTPCode_ELB_5XX_Count.
+
+7. Clique em "Selecionar métrica".
+
+8. Configure as Condições:
+
+    ```
+    . Estatística: Soma.
+
+    . Período: 5 minutos.
+
+    . Limite: Defina a condição como "Maior/igual que" e o valor como 1.
+    ```
+
+9. Clique em "Avançar".
+
+10. Configure a Ação:
+
+    ```
+    . Em "Ação de notificação", selecione "Selecionar um tópico do SNS existente".
+
+    . Escolha o tópico SNS criado na lista.
+    ```
+
+11. Clique em "Avançar".
+
+12. Adicione Nome e Descrição
+
+13. Clique em "Avançar" e clique em "Criar alarme".
+
+14. Para criar a métrica de uso de CPU para o ASG, volte em "Criar alarme".
+
+15. Selecionar a Métrica Correta
+
+    ```
+    . Na tela "Especificar métrica e condições", clique em "Selecionar métrica".
+
+    . A métrica CPUUtilization para um ASG está no namespace do EC2. Clique em EC2.
+
+    . Agora você precisa filtrar pela dimensão correta. Clique em "Por grupo do Auto Scaling".
+
+    . Você verá uma lista dos seus Auto Scaling Groups. Encontre o seu grupo (chamado asg no seu código) e marque a caixa de seleção ao lado da métrica CPUUtilization.
+    ```
+
+16. Clique no botão "Selecionar métrica".
+
+17. Definir as Condições do Alarme
+
+    ```
+    . Estatística: Escolha Média (correspondente a statistic = "Average").
+
+    . Período: Escolha 5 minutos (correspondente a period = 300).
+
+    . Condições:
+
+        Tipo de limite: Estático.
+
+        Definir o alarme quando...: Selecione Maior/igual que (correspondente a comparison_operator).
+
+        ...o limite: Digite 70 (correspondente a threshold = 70.0).
+    ```
+
+18. Clique em "Avançar".
+
+19. Configurar a Ação de Notificação
+
+    ```
+    . Na seção "Ação de notificação", certifique-se de que o estado "Em alarme" está selecionado.
+
+    . Selecione "Selecionar um tópico do SNS existente".
+
+    . No campo "Enviar notificação para...", escolha o seu tópico SNS já existente (alerta).
+    ```
+
+20. Clique em "Avançar".
+
+21. Adicionar Nome, Descrição e Criar
+
+---
+
+## 📊 Monitoramento
+
+### Dbeaver
+
+1. Acesse no browser http://<ip_publico_bastion>:8978.
+
+2. No painel, va em Next.
+
+3. Em "Administrator Credentials" crie um usuário e senha.
+
+4. Ao criar o usuário, deverá fazer login com ele.
+
+5. Estando logado, va no icone do Dbeaver no canto superior esquerdo.
+
+6. Depois no icone de + e em "new connection".
+
+7. Selecione Mysql
+
+8. No painel:
+
+    ```
+    . Em Host coloque o endpoint do RDS.
+
+    . Em Database o nome do Banco de Dados.
+
+    . Em Authentication o nome e senha do usuário do Banco de Dados.
+
+    . Criar conexão
+    ```
+
+9. Selecione o banco no menu lateral esquerdo e logue com o usuário.
+
+10. O Dbeaver está configurado para manipular e consultar os dados.
+
+---
+
+### Grafana
+
+1. Acesse no browser http://<ip_publico_bastion>:3000.
+
+2. No painel de login, entre com o usuario padrão, depois por segurança troque a senha.
+
+    ```
+    . email or username = admin
+
+    . password = admin
+    ```
+
+3. Ja no painel, no menu esquerdo, va em Dashboards.
+
+4. Agora va em New > Import.
+
+5. Em "Grafana.com dashboard URL ou ID" insira o numero 14031.
+
+6. Clique em Load.
+
+7. Em "Select Prometheus data source" escolha o Prometheus.
+
+8. Clique em Import.
+
+9. Os dashboard do Mysql são carregados.
+
+---
+
+## ✨ Sobre o Programa de Estágio
+
+- Este projeto faz parte do Compass.Uol Schoolarship Program, que em parceria com universidades, oferece bolsas de estudo e oportunidades de aprendizagem para estudantes de tecnologia com excelente desempenho acadêmico, com foco em soluções de ponta e potencial de contratação.
+
+---
+
+## 👨‍💻 Autor
+
+- Pedro Angelo Vargas
+
+- GitHub: @PedroAngeloVargas
+
+
+
 
 
 

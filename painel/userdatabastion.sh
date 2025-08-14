@@ -66,7 +66,7 @@ services:
     restart: always
     command:
      - "--mysqld.username=${MYSQL_EXPORTER_USER}:${MYSQL_EXPORTER_PASSWORD}"
-     - "--mysqld.address=${MYSQL_EXPORTER_HOST}"
+     - "--mysqld.address=${MYSQL_EXPORTER_HOST}:3306"
     networks:
       - minha_network
 
