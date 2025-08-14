@@ -1,5 +1,5 @@
-compose-bastion/.env
-compose-wordpress/.env
+/compose/compose-bastion/.env
+/compose/compose-wordpress/.env
 *.env
 iac/secret.tfvars
 *.tfvars
