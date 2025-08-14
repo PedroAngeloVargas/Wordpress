@@ -1,7 +1,7 @@
 
 resource "aws_key_pair" "chave" {
   key_name   = "Chave deploy"
-  public_key = file("./deploy-key.pub")
+  public_key = file("./SUA-CHAVE.pub")
 
 }
 

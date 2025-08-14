@@ -1,5 +1,6 @@
 resource "aws_db_instance" "default" {
   allocated_storage      = 10
+  identifier             = "database-1"
   db_name                = "banco"
   engine                 = "mysql"
   engine_version         = "8.0"
