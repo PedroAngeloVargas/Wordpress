@@ -185,14 +185,6 @@ Opcional: Para acessar as maquinas Wordpress, faça o seguinte passo a passo:
         cd /mnt/efs_wordpress
     ```
 
-Opcional: Para acessar o painel de monitoramento, faça o seguinte passo a passo:
-
-    ```
-    . 1. Abra no brownser em http://<IP_publico_bastion>:3000
-
-    . 2. 
-    ```
-
 ---
 
 ### Pelo painel:
@@ -483,10 +475,11 @@ Resumo
 
 5. Escolha o Tipo de Instância
 
-Aqui você define o poder de processamento e a memória da sua máquina.
+    ```
+    . Aqui você define o poder de processamento e a memória da sua máquina.
 
-    ````
-    . Na seção "Tipo de instância", selecione um tipo na lista, uma boa escolha é a t2.micro ou t3.micro.
+    . Na seção "Tipo de instância", selecione um tipo na lista, uma boa escolha 
+    é a t2.micro ou t3.micro.
     ```
 
 6. Associe um Par de Chaves (Key Pair)
@@ -525,7 +518,7 @@ Aqui você define o poder de processamento e a memória da sua máquina.
     ```
 
 10. Criar Modelo de Execução
-````
+
 ---
 
 *--> Target Group (Health Check)*
