@@ -52,6 +52,8 @@ do RDS e da EFS.
 
 - User_data: Automação das configurações da Bastion Host e instâncias Wordpress.
 
+- KMS: Criar par de chaves para descriptografar secrets.
+
 - System Manager: Passar as variaveis de ambiente do RDS e EFS no User_data por meio de parâmetros.
 
 ---
