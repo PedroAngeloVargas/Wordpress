@@ -1,16 +1,22 @@
 #!/bin/bash
 sudo su
 
-EFS_ID=""
-DB_HOST=""
-DB_NAME=""
-DB_PASSWORD=""
-DB_USER=""
+PARAM_DB_HOST="/rds/endpoint"
+PARAM_DB_USER="/rds/user"
+PARAM_DB_PASSWORD="/rds/password"
+PARAM_DB_NAME="/rds/db/name"
+PARAM_EFS_ID="/efs/id"
 
 yum update -y
 
-yum install -y docker nfs-utils
+yum install -y docker nfs-utils jq
 amazon-linux-extras enable docker
+
+EFS_ID=$(aws ssm get-parameter --name "$PARAM_EFS_ID" --region us-east-1 --query "Parameter.Value" --output text)
+DB_HOST=$(aws ssm get-parameter --name "$PARAM_DB_HOST" --region us-east-1 --query "Parameter.Value" --output text)
+DB_NAME=$(aws ssm get-parameter --name "$PARAM_DB_NAME" --region us-east-1 --query "Parameter.Value" --output text)
+DB_PASSWORD=$(aws ssm get-parameter --name "$PARAM_DB_PASSWORD" --region us-east-1 --query "Parameter.Value" --output text)
+DB_USER=$(aws ssm get-parameter --name "$PARAM_DB_USER" --region us-east-1 --query "Parameter.Value" --output text)
 
 curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
@@ -20,7 +26,7 @@ systemctl enable docker
 
 usermod -aG docker ec2-user
 
-mkdir -p /mnt/efs_wordpress
+mkdir -p /mnt/efs_wordpress              
 
 mount -t nfs4 -o nfsvers=4.1 ${EFS_ID}.efs.us-east-1.amazonaws.com:/ /mnt/efs_wordpress
 

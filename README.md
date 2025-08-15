@@ -50,7 +50,9 @@ do RDS e da EFS.
 
 - SNS: Notificação ao proprietário de erros 5XX.
 
-- User_data: Automação das configurações da Bastion Host e instâncias Wordpress
+- User_data: Automação das configurações da Bastion Host e instâncias Wordpress.
+
+- System Manager: Passar as variaveis de ambiente do RDS e EFS no User_data por meio de parâmetros.
 
 ---
 
@@ -375,6 +377,80 @@ Resumo
 
 ---
 
+*--> System Manager*
+
+1. Acesse o Systems Manager e clique no serviço para abri-lo.
+
+2. No menu de navegação à esquerda, role para baixo e clique em Quick Setup (Configuração Rápida).
+
+3. Na página do Quick Setup, clique no botão Create (Criar).
+
+4. Marque a caixa de seleção ao lado de "Host Management" e clique em Next (Avançar).
+
+5. Configure as Opções de Gerenciamento:
+    
+    ```
+    . Nesta tela, você define o que o Quick Setup fará por você. Deixe o padrão:
+
+    . Configuration options (Opções de configuração):
+
+        Update Systems Manager Agent every two weeks: Mantenha esta opção marcada. Ela garante que o SSM Agent em suas instâncias seja sempre atualizado.
+
+        Collect inventory from your instances every 30 minutes: Coleta informações sobre o software e a configuração das suas instâncias. É útil para auditoria.
+
+        Scan instances for missing patches daily: Verifica diariamente se há patches de segurança faltando.
+
+    . Targets (Alvos):
+
+        Aqui você escolhe quais instâncias serão gerenciadas. A opção Current account (Conta atual) é a mais comum.
+
+        Você deve escolher All instances (Todas as instâncias) na sua conta e região.
+    ```
+
+6. Role até o final da página e clique no botão Create (Criar).
+
+7. No menu à esquerda, desça até a seção Application Management (Gerenciamento de Aplicações).
+
+8. Clique em Parameter Store.
+
+9. Na página do Parameter Store, clique no botão laranja Create parameter (Criar parâmetro).
+
+10. Agora, você preencherá o formulário para cada um dos seus parâmetros. Você repetirá este processo 5 vezes, uma para cada variável.
+
+Exemplo: Endpoint do RDS (db_host)
+
+    ```
+    . Name (Nome): /rds/endpoint
+
+        Este nome deve ser exatamente o mesmo do script userdata.
+
+    . Description (Descrição) - Opcional: Endpoint do banco de dados RDS da aplicação principal.
+
+        É uma boa prática descrever o que o parâmetro faz.
+
+    . Tier (Nível): Deixe como Standard.
+
+        O nível Standard é gratuito e suficiente para a maioria dos casos de uso.
+
+    . Type (Tipo): Deixe como String.
+
+        Use String para informações de texto simples. 
+
+    . Value (Valor): Cole aqui o endpoint do seu banco de dados RDS com a porta no final.
+
+        Exemplo: meu_app_db.xxxxxxxxxxx.us-east-1.rds.amazonaws.com:3306
+    
+    . Faça o mesmo processo para as seguintes variaveis:
+        /rds/user
+        /rds/password
+        /rds/db/name
+        /efs/id
+    ```
+
+11. Clique em Create parameter.
+
+---
+
 *--> Bastion Host*
 
 1. Acesse EC2 no painel da AWS
@@ -436,11 +512,6 @@ Resumo
     . Dentro do painel "Detalhes avançados" que se abriu, role um pouco para baixo até encontrar o campo de texto chamado Dados do usuário (User data).
 
     . Nesta caixa de texto você irá colar um script desse repositório. Que se encontra em /painel/userdatawordpress.sh
-
-    . Não se esqueça, de definir as variáveis de ambiente do Banco de Dados corretament no arquivo:
-        DB_HOST=""
-        DB_PASSWORD=""
-        DB_USER=""
     ```
 
 10. Criar instância.
@@ -509,12 +580,7 @@ Resumo
 
     . Role até o final da seção expandida e encontre o campo "Dados do usuário".
 
-    . Insira o arquivo /painel/userdatawordpress.sh, não se esqueça de colocar as variaveis de ambiente:
-        EFS_ID=""
-        DB_HOST=""
-        DB_NAME=""
-        DB_PASSWORD=""
-        DB_USER=""
+    . Insira o arquivo /painel/userdatawordpress.sh.
     ```
 
 10. Criar Modelo de Execução
@@ -527,9 +593,9 @@ Resumo
 
 2. No menu à esquerda, em "Balanceamento de Carga", clique em Grupos de destino (Target Groups).
 
-3.  Clique no botão "Criar grupo de destino".
+3. Clique no botão "Criar grupo de destino".
 
-4.  Escolha um tipo de destino: Selecione "Instâncias". 
+4. Escolha um tipo de destino: Selecione "Instâncias". 
 
 5. Nome do grupo de destino: Digite health-check.
 
