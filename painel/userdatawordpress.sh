@@ -1,11 +1,11 @@
 #!/bin/bash
 sudo su
 
-PARAM_DB_HOST="/rds/endpoint"
-PARAM_DB_USER="/rds/user"
-PARAM_DB_PASSWORD="/rds/password"
-PARAM_DB_NAME="/rds/db/name"
-PARAM_EFS_ID="/efs/id"
+PARAM_DB_HOST="/seu/caminho/db_host"
+PARAM_DB_USER="/seu/caminho/db_user"
+PARAM_DB_PASSWORD="/seu/caminho/db_password"
+PARAM_DB_NAME="/seu/caminho/db_name"
+PARAM_EFS_ID="/seu/caminho/efs_id"
 
 yum update -y
 
@@ -15,8 +15,8 @@ amazon-linux-extras enable docker
 EFS_ID=$(aws ssm get-parameter --name "$PARAM_EFS_ID" --region us-east-1 --query "Parameter.Value" --output text)
 DB_HOST=$(aws ssm get-parameter --name "$PARAM_DB_HOST" --region us-east-1 --query "Parameter.Value" --output text)
 DB_NAME=$(aws ssm get-parameter --name "$PARAM_DB_NAME" --region us-east-1 --query "Parameter.Value" --output text)
-DB_PASSWORD=$(aws ssm get-parameter --name "$PARAM_DB_PASSWORD" --region us-east-1 --query "Parameter.Value" --output text)
-DB_USER=$(aws ssm get-parameter --name "$PARAM_DB_USER" --region us-east-1 --query "Parameter.Value" --output text)
+DB_PASSWORD=$(aws ssm get-parameter --name "$PARAM_DB_PASSWORD" --region us-east-1 --with-decryption --query "Parameter.Value" --output text)
+DB_USER=$(aws ssm get-parameter --name "$PARAM_DB_USER" --region us-east-1 --with-decryption --query "Parameter.Value" --output text)
 
 curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
@@ -68,6 +68,7 @@ EOF
 
 chmod 700 /home/ec2-user/wordpress/.env
 chmod 700 /home/ec2-user/wordpress/docker-compose.yml
+chown -R root:root /home/ec2-user/wordpress/.env
 chown -R ec2-user:ec2-user /home/ec2-user/wordpress
 
 cd /home/ec2-user/wordpress

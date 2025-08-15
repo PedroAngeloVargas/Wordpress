@@ -1,13 +1,13 @@
 #!/bin/bash
 sudo su
 
-PARAM_DB_HOST="/rds/endpoint"
-PARAM_DB_USER="/rds/user"
-PARAM_DB_PASSWORD="/rds/password"
+PARAM_DB_HOST="/seu/caminho/db_host"
+PARAM_DB_USER="/seu/caminho/db_user"
+PARAM_DB_PASSWORD="/seu/caminho/db_password"
 
 DB_HOST=$(aws ssm get-parameter --name "$PARAM_DB_HOST" --region us-east-1 --query "Parameter.Value" --output text)
-DB_PASSWORD=$(aws ssm get-parameter --name "$PARAM_DB_PASSWORD" --region us-east-1 --query "Parameter.Value" --output text)
-DB_USER=$(aws ssm get-parameter --name "$PARAM_DB_USER" --region us-east-1 --query "Parameter.Value" --output text)
+DB_PASSWORD=$(aws ssm get-parameter --name "$PARAM_DB_PASSWORD" --region us-east-1 --with-decryption --query "Parameter.Value" --output text)
+DB_USER=$(aws ssm get-parameter --name "$PARAM_DB_USER" --region us-east-1 --with-decryption --query "Parameter.Value" --output text)
 
 apt update -y && apt upgrade -y 
 

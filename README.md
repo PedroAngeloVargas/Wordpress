@@ -415,14 +415,14 @@ Resumo
 
 9. Na página do Parameter Store, clique no botão laranja Create parameter (Criar parâmetro).
 
-10. Agora, você preencherá o formulário para cada um dos seus parâmetros. Você repetirá este processo 5 vezes, uma para cada variável.
+10. Agora, você preencherá o formulário para cada um dos seus parâmetros. Você repetirá este processo 3 vezes, uma para cada variável.
 
 Exemplo: Endpoint do RDS (db_host)
 
     ```
-    . Name (Nome): /rds/endpoint
+    . Name (Nome): /seu/caminho/db_host
 
-        Este nome deve ser exatamente o mesmo do script userdata.
+        Este nome deve ser da sua escolha, no mesmo modelo do exemplo.
 
     . Description (Descrição) - Opcional: Endpoint do banco de dados RDS da aplicação principal.
 
@@ -432,7 +432,7 @@ Exemplo: Endpoint do RDS (db_host)
 
         O nível Standard é gratuito e suficiente para a maioria dos casos de uso.
 
-    . Type (Tipo): Deixe como String.
+    . Type (Tipo): Deixe como String. 
 
         Use String para informações de texto simples. 
 
@@ -440,14 +440,64 @@ Exemplo: Endpoint do RDS (db_host)
 
         Exemplo: meu_app_db.xxxxxxxxxxx.us-east-1.rds.amazonaws.com:3306
     
-    . Faça o mesmo processo para as seguintes variaveis:
-        /rds/user
-        /rds/password
-        /rds/db/name
-        /efs/id
+    . Faça o mesmo processo para as outras variaveis no User_data.
+        PARAM_DB_NAME="/seu/caminho/db_name"
+        PARAM_EFS_ID="/seu/caminho/efs_id"
     ```
 
 11. Clique em Create parameter.
+
+---
+
+*-->KMS*
+
+1. Acesse o KMS: Vá ao console da AWS e procure por KMS.
+
+2. Crie a Chave: No menu à esquerda, clique em Customer managed keys e depois no botão Create key.
+
+3. Configuração da Chave:
+
+    ```
+    . Key type: Symmetric (Simétrica)
+
+    . Key usage: Encrypt and decrypt (Criptografar e descriptografar)
+
+    . Clique em Next.
+    
+
+    . Apelido (Alias):
+
+        Alias: Dê um nome fácil de lembrar, por exemplo: alias/minha-app/db-secrets
+    ```
+
+4. Clique em Next.
+
+5. Administradores da Chave:
+
+    ```
+    . Selecione seu usuário ou um grupo de administradores que poderá gerenciar esta chave.
+    ```
+
+6. Clique em Next.
+
+7. Permissões de Uso da Chave: Procure pelo role AmazonSSMRoleForInstancesQuickSetup e selecione.
+
+8. Revisar e Finalizar:
+
+    ```
+    Revise as configurações e clique em Finish.
+
+    Guarde o ARN da Chave: Clique no alias da chave que você acabou de criar. Na tela de detalhes, copie o ARN. Ele será algo como arn:aws:kms:us-east-1:1234567890:key/xxxx-xxxx-xxxx-xxxx.
+    ```
+9. Volte em System Manager
+
+10. Crie os parametros que falta com type: SecureString e vincule a chave KMS 
+
+    ```
+    . PARAM_DB_USER="/seu/caminho/db_user"
+
+    . PARAM_DB_PASSWORD="/seu/caminho/db_password"
+    ```
 
 ---
 
@@ -504,7 +554,9 @@ Exemplo: Endpoint do RDS (db_host)
 
 8. Deixe os valores de armazenamento padrão.
 
-9. Utilizar o User_Data para automatizar as configurações
+9. Em "Perfil de instância do IAM" selecione o AmazonSSMRoleForInstancesQuickSetup
+
+10. Utilizar o User_Data para automatizar as configurações
 
     ```
     . Selecione detalhes avançados (Advanced details). Por padrão, ela pode estar recolhida. Clique nela para expandir.
@@ -512,9 +564,11 @@ Exemplo: Endpoint do RDS (db_host)
     . Dentro do painel "Detalhes avançados" que se abriu, role um pouco para baixo até encontrar o campo de texto chamado Dados do usuário (User data).
 
     . Nesta caixa de texto você irá colar um script desse repositório. Que se encontra em /painel/userdatawordpress.sh
+
+    . Não se esqueça de substituir o caminho dos parametros.
     ```
 
-10. Criar instância.
+11. Criar instância.
 
 ---
 
@@ -573,7 +627,9 @@ Exemplo: Endpoint do RDS (db_host)
     . A seção "Configurar armazenamento" já virá preenchida com o volume raiz (o disco principal) baseado na AMI que você escolheu, é o suficiente para a aplicação.
     ```
 
-9. Adicione o Script de User Data
+9. Em "Perfil de instância do IAM" selecione o AmazonSSMRoleForInstancesQuickSetup.
+
+10. Adicione o Script de User Data
 
     ```
     . Expanda a seção "Detalhes avançados" no final da página.
@@ -581,9 +637,11 @@ Exemplo: Endpoint do RDS (db_host)
     . Role até o final da seção expandida e encontre o campo "Dados do usuário".
 
     . Insira o arquivo /painel/userdatawordpress.sh.
+
+    . Não se esqueça de substituir os parametros.
     ```
 
-10. Criar Modelo de Execução
+11. Criar Modelo de Execução
 
 ---
 
